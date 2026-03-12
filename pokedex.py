@@ -6,27 +6,39 @@ def get_evolution(pokemon_name):
 	response = requests.get(url)
 	if response.status_code == 200:
 		data = response.json()
-		evo_url = data['evolution_chain']['url']
-		evo_response = requests.get(evo_url)
-		evo_data = evo_response.json()
+	evo_url = data['evolution_chain']['url']
+	evo_response = requests.get(evo_url)
+	evo_data = evo_response.json()
 
-		chain = evo_data['chain']
-		print(f"\n🔥 {pokemon_name.capitalize()} Evolution Chain:")
+	chain = evo_data['chain']
+	print(f"\n🔥 {pokemon_name.capitalize()} Evolution Chain:")
+	print_chain(chain)
 
-		current = chain
-		while current:
-			name = current['species']['name'].capitalize()
-			if current['evolves_to']:
-				detail = current['evolves_to'][0]['evolution_details'][0]
-				level = detail.get('min_level') or 'Special condition'
-				print(f" {name} → evolves at level {level}")
-				current = current['evolves_to'][0]
+def print_chain(chain, indent=0):
+	name = chain['species']['name'].capitalize()
+	if chain['evolves_to']:
+		for evolution in chain['evolves_to']:
+			detail = evolution['evolution_details'][0]
+			level = detail.get('min_level')
+			item = detail.get('item')
+			trigger = detail.get('trigger', {}).get('name', '')
+
+			if level:
+				condition = f"level {level}"
+			elif item:
+				condition = f"{item['name'].replace('-', ' ').title()}"
+			elif trigger == 'trade':
+				condition = "trading"
+			elif detail.get('min_happiness'):
+				condition = "happiness"
 			else:
-				print(f" {name} → final form")
-				current = None
-	else:
-		print(f"Pokémon '{pokemon_name}' not found.")
+				condition = "special condition"
 
+			next_name = evolution['species']['name'].capitalize()
+			print(f"{' ' * indent}{name} → {next_name} ({condition})")
+			print_chain(evolution, indent + 1)
+	else:
+		print(f"{' ' * indent}{name} → final form")
 
 
 def main():
