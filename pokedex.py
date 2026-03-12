@@ -27,7 +27,7 @@ def get_evolution(pokemon_name):
 	else:
 		print(f"Pokémon '{pokemon_name}' not found.")
 
-get_evolution("charmander")
+
 
 def main():
 	while True:
